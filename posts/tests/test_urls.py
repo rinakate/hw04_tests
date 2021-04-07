@@ -65,7 +65,6 @@ class GeneralURLTests(TestCase):
             with self.subTest():
                 response = self.authorized_client.get(url)
                 self.assertEqual(response.status_code, expected_status)
-        
 
     def test_urls_authorized_client_not_author_redirect(self):
         urls = {
@@ -81,11 +80,15 @@ class GeneralURLTests(TestCase):
         templates_url_names = {
             'index.html': '/',
             'group.html': f'/group/{GeneralURLTests.group.slug}/',
-            'new_post.html': '/new/',
-            'new_post.html': f'/{GeneralURLTests.post.author}/'
-                             f'{GeneralURLTests.post.id}/edit/'
+            'new_post.html': '/new/'
         }
         for template, reverse_name in templates_url_names.items():
             with self.subTest():
                 response = self.authorized_client.get(reverse_name)
                 self.assertTemplateUsed(response, template)
+
+    def test_post_edit_use_correct_template(self):
+        response = self.authorized_client.get(
+            f'/{GeneralURLTests.post.author}/{GeneralURLTests.post.id}/edit/'
+        )
+        self.assertTemplateUsed(response, 'new_post.html')

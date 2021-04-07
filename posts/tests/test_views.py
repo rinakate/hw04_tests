@@ -138,7 +138,7 @@ class GeneralModelTest(TestCase):
             description='Тестовое описание'
         )
         response = self.authorized_client.get(
-            reverse('group', kwargs={'slug': 'test_slug_2'})
+            reverse('group', kwargs={'slug': another_group.slug})
         )
         another_posts = response.context['page']
         self.assertNotIn(self.post, another_posts)
