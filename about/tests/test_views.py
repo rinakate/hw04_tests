@@ -19,8 +19,8 @@ class StaticURLTests(TestCase):
 
     def test_urls_guest_client(self):
         urls = {
-            '/about/author/': 200,
-            '/about/author/': 200
+            reverse('about:author'): 200,
+            reverse('about:tech'): 200
         }
         for url, expected_status in urls.items():
             with self.subTest():

@@ -77,7 +77,7 @@ def profile(request, username):
 
 def post_view(request, username, post_id):
     author = get_object_or_404(User, username=username)
-    post = Post.objects.get(pk=post_id)
+    post = get_object_or_404(Post, pk=post_id)
     context = {
         'author': author,
         'post': post

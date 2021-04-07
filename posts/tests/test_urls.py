@@ -1,4 +1,5 @@
 from django.test import Client, TestCase
+from django.urls import reverse
 
 from posts.models import Group, Post, User
 
@@ -30,13 +31,14 @@ class GeneralURLTests(TestCase):
 
     def test_urls_guest_client(self):
         urls = {
-            '/': 200,
-            f'/group/{GeneralURLTests.group.slug}/': 200,
-            '/new/': 302,
-            f'/{GeneralURLTests.post.author}/': 200,
-            f'/{GeneralURLTests.post.author}/{GeneralURLTests.post.id}/': 200,
-            (f'/{GeneralURLTests.post.author}/'
-             f'{GeneralURLTests.post.id}/edit/'): 302
+            reverse('index'): 200,
+            reverse('group', kwargs={'slug': 'test_slug'}): 200,
+            reverse('new_post'): 302,
+            reverse('profile', kwargs={'username': self.user.username}): 200,
+            reverse('post_edit', kwargs={
+                'username': self.user.username,
+                'post_id': self.post.id
+            }): 302
         }
         for url, expected_status in urls.items():
             with self.subTest():
@@ -45,11 +47,14 @@ class GeneralURLTests(TestCase):
 
     def test_urls_authorized_client(self):
         urls = {
-            '/': 200,
-            f'/group/{GeneralURLTests.group.slug}/': 200,
-            '/new/': 200,
-            f'/{GeneralURLTests.post.author}/': 200,
-            f'/{GeneralURLTests.post.author}/{GeneralURLTests.post.id}/': 200
+            reverse('index'): 200,
+            reverse('group', kwargs={'slug': 'test_slug'}): 200,
+            reverse('new_post'): 200,
+            reverse('profile', kwargs={'username': self.user.username}): 200,
+            reverse('post', kwargs={
+                'username': self.user.username,
+                'post_id': self.post.id
+            }): 200
         }
         for url, expected_status in urls.items():
             with self.subTest():
@@ -58,8 +63,10 @@ class GeneralURLTests(TestCase):
 
     def test_urls_authorized_client_author(self):
         urls = {
-            (f'/{GeneralURLTests.post.author}/'
-             f'{GeneralURLTests.post.id}/edit/'): 200
+            reverse('post_edit', kwargs={
+                'username': self.user.username,
+                'post_id': self.post.id
+            }): 200
         }
         for url, expected_status in urls.items():
             with self.subTest():
@@ -68,8 +75,10 @@ class GeneralURLTests(TestCase):
 
     def test_urls_authorized_client_not_author_redirect(self):
         urls = {
-            (f'/{GeneralURLTests.post2.author}/'
-             f'{GeneralURLTests.post2.id}/edit/'): 302
+            reverse('post_edit', kwargs={
+                'username': self.user2.username,
+                'post_id': self.post2.id
+            }): 302
         }
         for url, expected_status in urls.items():
             with self.subTest():
@@ -78,9 +87,9 @@ class GeneralURLTests(TestCase):
 
     def test_urls_uses_correct_template(self):
         templates_url_names = {
-            'index.html': '/',
-            'group.html': f'/group/{GeneralURLTests.group.slug}/',
-            'new_post.html': '/new/'
+            'index.html': reverse('index'),
+            'group.html': reverse('group', kwargs={'slug': 'test_slug'}),
+            'new_post.html': reverse('new_post')
         }
         for template, reverse_name in templates_url_names.items():
             with self.subTest():
@@ -88,7 +97,8 @@ class GeneralURLTests(TestCase):
                 self.assertTemplateUsed(response, template)
 
     def test_post_edit_use_correct_template(self):
-        response = self.authorized_client.get(
-            f'/{GeneralURLTests.post.author}/{GeneralURLTests.post.id}/edit/'
-        )
+        response = self.authorized_client.get(reverse('post_edit', kwargs={
+            'username': self.user.username,
+            'post_id': self.post.id
+        }))
         self.assertTemplateUsed(response, 'new_post.html')
